@@ -3,9 +3,10 @@ package influxdbv2
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/influxdata/influxdb-client-go/v2"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/domain"
 )
 
@@ -92,54 +93,11 @@ func dataSourceBucketRead(ctx context.Context, d *schema.ResourceData, meta inte
 		}
 	}
 	diags = setBucketData(d, bucket)
-	d.Set("id", bucket.Id)
+	err = d.Set("id", bucket.Id)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 	d.SetId(*bucket.Id)
-	//id := bucket.Id
-	//if id == nil {
-	//	diags = append(diags, diag.Diagnostic{
-	//		Severity: diag.Error,
-	//		Summary:  "Bucket not found",
-	//	})
-	//	return diags
-	//}
-	//
-	//d.SetId(*id)
-	//err = d.Set("id", *id)
-	//if err != nil {
-	//	return diag.FromErr(err)
-	//}
-	//if bucket.Description != nil {
-	//	err := d.Set("description", *bucket.Description)
-	//	if err != nil {
-	//		return diag.FromErr(err)
-	//	}
-	//}
-	//err = d.Set("name", bucket.Name)
-	//if err != nil {
-	//	return diag.FromErr(err)
-	//}
-	//
-	//err = d.Set("type", bucket.Type)
-	//if err != nil {
-	//	return diag.FromErr(err)
-	//}
-	//
-	//retentionRules := make([]interface{}, len(bucket.RetentionRules))
-	//for i, rule := range bucket.RetentionRules {
-	//	ruleMap := map[string]interface{}{
-	//		"every_seconds": int(rule.EverySeconds),
-	//		"type":          rule.Type,
-	//	}
-	//	if rule.ShardGroupDurationSeconds != nil && *rule.ShardGroupDurationSeconds > rule.EverySeconds {
-	//		ruleMap["shard_group_duration_seconds"] = int(*rule.ShardGroupDurationSeconds) // convert *int64 to int
-	//	} else {
-	//		ruleMap["shard_group_duration_seconds"] = 0
-	//	}
-	//	retentionRules[i] = ruleMap
-	//}
-	//if err := d.Set("retention_rules", schema.NewSet(schema.HashResource(dataSourceBucket().Schema["retention_rules"].Elem.(*schema.Resource)), retentionRules)); err != nil {
-	//	return diag.FromErr(err)
-	//}
 
 	return diags
 }
