@@ -6,8 +6,8 @@ vars:
   BINARY_FOLDER: bin
   NAME: influxdb-v2
   GOLANGCI_LINT_VERSION: v1.52.2
-  VERSION: v0.4.5
-  NAMESPACE: hasanhakkaev
+  VERSION: v0.4.6
+  NAMESPACE: slcp
 
 dotenv: ['.env']
 
