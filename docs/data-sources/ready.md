@@ -27,5 +27,3 @@ output "influxdb-v2_ready" {
 
 - `id` (String) The ID of this resource.
 - `output` (Map of String)
-
-

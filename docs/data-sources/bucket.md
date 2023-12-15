@@ -14,10 +14,10 @@ Lookup a Bucket in InfluxDB2.
 
 ```terraform
 data "influxdb-v2_bucket" "bucket" {
-  name = "newName"
+  name = "testbucket"
 }
 
-output "influxdb-v2_bucket4" {
+output "influxdb-v2_bucket" {
   value = data.influxdb-v2_bucket.bucket
 }
 
@@ -58,5 +58,3 @@ Read-Only:
 - `every_seconds` (Number)
 - `shard_group_duration_seconds` (Number)
 - `type` (String)
-
-

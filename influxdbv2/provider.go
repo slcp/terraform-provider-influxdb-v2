@@ -2,6 +2,7 @@ package influxdbv2
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -35,13 +36,26 @@ func Provider() *schema.Provider {
 				Sensitive:   true,
 				DefaultFunc: schema.EnvDefaultFunc("INFLUXDB_V2_TOKEN", ""),
 			},
+			"skip_ssl_verify": {
+				Type:        schema.TypeBool,
+				Description: "skip ssl verify on connection",
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("INFLUXDB_SKIP_SSL_VERIFY", "0"),
+			},
 		},
 		ConfigureFunc: providerConfigure,
 	}
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
-	influx := influxdb2.NewClient(d.Get("url").(string), d.Get("token").(string))
+	url := d.Get("url").(string)
+	token := d.Get("token").(string)
+	sslv := d.Get("skip_ssl_verify").(bool)
+	tls := &tls.Config{
+		InsecureSkipVerify: sslv,
+	}
+	opts := influxdb2.DefaultOptions().SetTLSConfig(tls)
+	influx := influxdb2.NewClientWithOptions(url, token, opts)
 
 	_, err := influx.Ready(context.Background())
 	if err != nil {
