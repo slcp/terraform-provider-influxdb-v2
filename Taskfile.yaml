@@ -66,9 +66,16 @@ tasks:
   start-influx:
     desc: Start InfluxDB
     cmds:
-      - ./scripts/setup_influxdb.sh
+      - source ./scripts/setup_influxdb.sh
   stop-influx:
     desc: Stop InfluxDB
     cmds:
         - docker stop tf_acc_tests_influxdb
         - docker rm tf_acc_tests_influxdb
+  test:acceptance:
+    desc: Acceptance tests
+    cmds:
+        - |
+          source ./scripts/setup_influxdb.sh &&
+          task test
+          task stop-influx
