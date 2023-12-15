@@ -14,8 +14,9 @@ description: |-
 
 ```terraform
 provider "influxdb-v2" {
-  url  = "http://localhost:8086"    # changeme
-  token = "WLCq15HS_zugineJalPUqxTxxBKK7IluEseKR0rD3-2CfHBdS0BguLHGEaXRnJ2p080EdTsx9yKq1kFnLnSaxA==" # changeme
+  host  = "http://localhost:8086"    # changeme
+  token = "super-secret-admin-token" # changeme
+  skip_ssl_verify = false            # default
 }
 ```
 
@@ -24,5 +25,6 @@ provider "influxdb-v2" {
 
 ### Optional
 
+- `skip_ssl_verify` (Boolean) skip ssl verify on connection
 - `token` (String, Sensitive)
 - `url` (String)

@@ -14,7 +14,7 @@ description: |-
 
 ```terraform
 locals {
-  org_id = "ed2e6b93c8396828"
+  org_id = "example_org_id"
 }
 
 resource "influxdb-v2_bucket" "example_bucket" {

@@ -14,7 +14,7 @@ Lookup an Organization in InfluxDB2.
 
 ```terraform
 data "influxdb-v2_organization" "organization" {
-  name = "testorg"
+  name = "my-org"
 }
 
 output "influxdb-v2_organization_id" {
@@ -65,5 +65,3 @@ terraform {
 - `description` (String) The description of the Organization.
 - `updated_at` (String) The string time that the Organization was last updated.
 - `updated_timestamp` (Number) The timestamp that the Organization was last updated.
-
-
