@@ -141,8 +141,7 @@ func resourceLegacyAuthorizationDelete(d *schema.ResourceData, m interface{}) er
 
 func resourceLegacyAuthorizationRead(d *schema.ResourceData, m interface{}) error {
 	influx := m.(meta).legacyAuthorizationsClient
-	ctx := context.Background()
-	authorization, err := influx.GetLegacyAuthorizationsIDWithResponse(ctx, d.Id(), &GetLegacyAuthorizationsIDParams{})
+	authorization, err := influx.GetLegacyAuthorizationsIDWithResponse(context.Background(), d.Id(), &GetLegacyAuthorizationsIDParams{})
 	if err != nil || authorization.StatusCode() != 200 {
 		return fmt.Errorf("error getting authorization: %v", err)
 	}
@@ -176,8 +175,6 @@ func resourceLegacyAuthorizationUpdate(d *schema.ResourceData, m interface{}) er
 		Description: &description,
 		Status:      &status,
 	})
-	fmt.Println("hello world")
-	fmt.Println(authorization.HTTPResponse.Request.URL)
 	if err != nil || authorization.StatusCode() != 200 {
 		return fmt.Errorf("error updating authorization: %v", err)
 	}
