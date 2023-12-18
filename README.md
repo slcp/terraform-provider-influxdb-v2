@@ -49,11 +49,13 @@ Influxdb v2 api documentation is available [here](https://v2.docs.influxdata.com
 
 * ready (status of the influxdb-v2 instance)
 * organization (get an organization by name)
+* bucket (get a bucket by name)
 
 #### Resources
 
 * bucket
 * authorization (tokens)
+* legacy_authorization (v1 compatibility layer)
 * organization
 
 ### Examples

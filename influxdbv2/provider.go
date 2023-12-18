@@ -4,10 +4,16 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
+
+type meta struct {
+	influxsdk                  influxdb2.Client
+	legacyAuthorizationsClient *ClientWithResponses
+}
 
 func Provider() *schema.Provider {
 	return &schema.Provider{
@@ -17,9 +23,10 @@ func Provider() *schema.Provider {
 			"influxdb-v2_bucket":       dataSourceBucket(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"influxdb-v2_bucket":        ResourceBucket(),
-			"influxdb-v2_authorization": ResourceAuthorization(),
-			"influxdb-v2_organization":  ResourceOrganization(),
+			"influxdb-v2_bucket":               ResourceBucket(),
+			"influxdb-v2_authorization":        ResourceAuthorization(),
+			"influxdb-v2_organization":         ResourceOrganization(),
+			"influxdb-v2_legacy_authorization": ResourceLegacyAuthorization(),
 		},
 		Schema: map[string]*schema.Schema{
 			"url": {
@@ -62,5 +69,16 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		return nil, fmt.Errorf("error pinging server: %s", err)
 	}
 
-	return influx, nil
+	addToken := func(ctx context.Context, req *http.Request) error {
+		req.Header.Add("Authorization", fmt.Sprintf("Token %s", token))
+		return nil
+	}
+	legacy, err := NewClientWithResponses(fmt.Sprint(url, "/private"), WithRequestEditorFn(addToken))
+	if err != nil {
+		return nil, fmt.Errorf("error creating legacy client: %s", err)
+	}
+	return meta{
+		influxsdk:                  influx,
+		legacyAuthorizationsClient: legacy,
+	}, nil
 }
