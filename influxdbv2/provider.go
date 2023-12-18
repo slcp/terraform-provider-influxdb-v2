@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
@@ -67,7 +68,11 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		return nil, fmt.Errorf("error pinging server: %s", err)
 	}
 
-	legacy, err := NewClient(url)
+	addToken := func(ctx context.Context, req *http.Request) error {
+		req.Header.Add("Authorization", fmt.Sprintf("Token %s", token))
+		return nil
+	}
+	legacy, err := NewClient(url, WithRequestEditorFn(addToken))
 	if err != nil {
 		return nil, fmt.Errorf("error creating legacy client: %s", err)
 	}
