@@ -1,0 +1,1 @@
+terraform import influxdb-v2_legacy_authorization.example_authorization <AUTH_ID>
