@@ -29,7 +29,7 @@ func ResourceLegacyAuthorization() *schema.Resource {
 			},
 			"name": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 			},
 			"password": {
 				Type:     schema.TypeString,
