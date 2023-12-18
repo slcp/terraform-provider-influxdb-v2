@@ -65,8 +65,8 @@ func ResourceBucket() *schema.Resource {
 	}
 }
 
-func resourceBucketCreate(d *schema.ResourceData, meta interface{}) error {
-	influx := meta.(influxdb2.Client)
+func resourceBucketCreate(d *schema.ResourceData, m interface{}) error {
+	influx := m.(meta).influxsdk.(influxdb2.Client)
 	retentionRules := getRetentionRules(d.Get("retention_rules"))
 	desc := d.Get("description").(string)
 	orgid := d.Get("org_id").(string)
@@ -83,11 +83,11 @@ func resourceBucketCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error creating bucket: %v", err)
 	}
 	d.SetId(*result.Id)
-	return resourceBucketRead(d, meta)
+	return resourceBucketRead(d, m)
 }
 
-func resourceBucketDelete(d *schema.ResourceData, meta interface{}) error {
-	influx := meta.(influxdb2.Client)
+func resourceBucketDelete(d *schema.ResourceData, m interface{}) error {
+	influx := m.(meta).influxsdk.(influxdb2.Client)
 	err := influx.BucketsAPI().DeleteBucketWithID(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("error deleting bucket: %v", err)
@@ -96,8 +96,8 @@ func resourceBucketDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceBucketRead(d *schema.ResourceData, meta interface{}) error {
-	influx := meta.(influxdb2.Client)
+func resourceBucketRead(d *schema.ResourceData, m interface{}) error {
+	influx := m.(meta).influxsdk.(influxdb2.Client)
 	result, err := influx.BucketsAPI().FindBucketByID(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("error getting bucket: %v", err)
@@ -158,8 +158,8 @@ func resourceBucketRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceBucketUpdate(d *schema.ResourceData, meta interface{}) error {
-	influx := meta.(influxdb2.Client)
+func resourceBucketUpdate(d *schema.ResourceData, m interface{}) error {
+	influx := m.(meta).influxsdk.(influxdb2.Client)
 	retentionRules := getRetentionRules(d.Get("retention_rules"))
 
 	id := d.Id()
@@ -181,7 +181,7 @@ func resourceBucketUpdate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error updating bucket: %v", err)
 	}
 
-	return resourceBucketRead(d, meta)
+	return resourceBucketRead(d, m)
 }
 
 func getRetentionRules(input interface{}) domain.RetentionRules {

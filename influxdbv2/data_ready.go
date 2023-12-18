@@ -21,8 +21,8 @@ func DataReady() *schema.Resource {
 	}
 }
 
-func DataGetReady(d *schema.ResourceData, meta interface{}) error {
-	influx := meta.(influxdb2.Client)
+func DataGetReady(d *schema.ResourceData, m interface{}) error {
+	influx := m.(meta).influxsdk.(influxdb2.Client)
 	ready, err := influx.Ready(context.Background())
 	if err != nil {
 		return fmt.Errorf("server is not ready: %v", err)

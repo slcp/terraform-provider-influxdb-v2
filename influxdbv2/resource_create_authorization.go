@@ -82,8 +82,8 @@ func ResourceAuthorization() *schema.Resource {
 	}
 }
 
-func resourceAuthorizationCreate(d *schema.ResourceData, meta interface{}) error {
-	influx := meta.(influxdb2.Client)
+func resourceAuthorizationCreate(d *schema.ResourceData, m interface{}) error {
+	influx := m.(meta).influxsdk.(influxdb2.Client)
 	permissions := getPermissions(d.Get("permissions"))
 	orgId := d.Get("org_id").(string)
 	description := d.Get("description").(string)
@@ -106,11 +106,11 @@ func resourceAuthorizationCreate(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
-	return resourceAuthorizationRead(d, meta)
+	return resourceAuthorizationRead(d, m)
 }
 
-func resourceAuthorizationDelete(d *schema.ResourceData, meta interface{}) error {
-	influx := meta.(influxdb2.Client)
+func resourceAuthorizationDelete(d *schema.ResourceData, m interface{}) error {
+	influx := m.(meta).influxsdk.(influxdb2.Client)
 	id := d.Id()
 	authorization := domain.Authorization{
 		Id: &id,
@@ -122,8 +122,8 @@ func resourceAuthorizationDelete(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceAuthorizationRead(d *schema.ResourceData, meta interface{}) error {
-	influx := meta.(influxdb2.Client)
+func resourceAuthorizationRead(d *schema.ResourceData, m interface{}) error {
+	influx := m.(meta).influxsdk.(influxdb2.Client)
 	result, err := influx.AuthorizationsAPI().FindAuthorizationsByOrgID(context.Background(), d.Get("org_id").(string))
 	if err != nil {
 		return fmt.Errorf("error getting authorization: %v", err)
@@ -151,8 +151,8 @@ func resourceAuthorizationRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceAuthorizationUpdate(d *schema.ResourceData, meta interface{}) error {
-	influx := meta.(influxdb2.Client)
+func resourceAuthorizationUpdate(d *schema.ResourceData, m interface{}) error {
+	influx := m.(meta).influxsdk.(influxdb2.Client)
 	id := d.Id()
 	authorization := domain.Authorization{
 		Id: &id,
@@ -162,7 +162,7 @@ func resourceAuthorizationUpdate(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return fmt.Errorf("error updating authorization: %v", err)
 	}
-	return resourceAuthorizationRead(d, meta)
+	return resourceAuthorizationRead(d, m)
 }
 
 func getPermissions(input interface{}) []domain.Permission {

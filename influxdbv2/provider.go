@@ -9,6 +9,11 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
+type meta struct {
+	influxsdk                  influxdb2.Client
+	legacyAuthorizationsClient *Client
+}
+
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		DataSourcesMap: map[string]*schema.Resource{
@@ -62,5 +67,12 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		return nil, fmt.Errorf("error pinging server: %s", err)
 	}
 
-	return influx, nil
+	legacy, err := NewClient(url)
+	if err != nil {
+		return nil, fmt.Errorf("error creating legacy client: %s", err)
+	}
+	return meta{
+		influxsdk:                  influx,
+		legacyAuthorizationsClient: legacy,
+	}, nil
 }
