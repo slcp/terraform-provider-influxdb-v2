@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/domain"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -39,7 +38,7 @@ func dataSourceOrganization() *schema.Resource {
 
 func dataSourceOrganizationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	// use the meta value to retrieve your client from the provider configure method
-	influx := m.(meta).influxsdk.(influxdb2.Client)
+	influx := m.(meta).influxsdk
 	orgAPI := influx.OrganizationsAPI()
 
 	// Warning or errors can be collected in a slice type

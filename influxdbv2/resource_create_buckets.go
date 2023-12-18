@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/domain"
 )
 
@@ -66,7 +65,7 @@ func ResourceBucket() *schema.Resource {
 }
 
 func resourceBucketCreate(d *schema.ResourceData, m interface{}) error {
-	influx := m.(meta).influxsdk.(influxdb2.Client)
+	influx := m.(meta).influxsdk
 	retentionRules := getRetentionRules(d.Get("retention_rules"))
 	desc := d.Get("description").(string)
 	orgid := d.Get("org_id").(string)
@@ -87,7 +86,7 @@ func resourceBucketCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceBucketDelete(d *schema.ResourceData, m interface{}) error {
-	influx := m.(meta).influxsdk.(influxdb2.Client)
+	influx := m.(meta).influxsdk
 	err := influx.BucketsAPI().DeleteBucketWithID(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("error deleting bucket: %v", err)
@@ -97,7 +96,7 @@ func resourceBucketDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceBucketRead(d *schema.ResourceData, m interface{}) error {
-	influx := m.(meta).influxsdk.(influxdb2.Client)
+	influx := m.(meta).influxsdk
 	result, err := influx.BucketsAPI().FindBucketByID(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("error getting bucket: %v", err)
@@ -159,7 +158,7 @@ func resourceBucketRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceBucketUpdate(d *schema.ResourceData, m interface{}) error {
-	influx := m.(meta).influxsdk.(influxdb2.Client)
+	influx := m.(meta).influxsdk
 	retentionRules := getRetentionRules(d.Get("retention_rules"))
 
 	id := d.Id()

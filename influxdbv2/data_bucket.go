@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/domain"
 )
 
@@ -71,7 +70,7 @@ func dataSourceBucket() *schema.Resource {
 
 func dataSourceBucketRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	// use the meta value to retrieve your client from the provider configure method
-	influx := m.(meta).influxsdk.(influxdb2.Client)
+	influx := m.(meta).influxsdk
 	bucketAPI := influx.BucketsAPI()
 
 	// Warning or errors can be collected in a slice type

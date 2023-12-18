@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/domain"
 )
 
@@ -41,7 +40,7 @@ func ResourceOrganization() *schema.Resource {
 }
 
 func resourceOrganizationCreate(d *schema.ResourceData, m interface{}) error {
-	influx := m.(meta).influxsdk.(influxdb2.Client)
+	influx := m.(meta).influxsdk
 	desc := d.Get("description").(string)
 	newOrg := &domain.Organization{
 		Name:        d.Get("name").(string),
@@ -57,7 +56,7 @@ func resourceOrganizationCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceOrganizationDelete(d *schema.ResourceData, m interface{}) error {
-	influx := m.(meta).influxsdk.(influxdb2.Client)
+	influx := m.(meta).influxsdk
 	err := influx.OrganizationsAPI().
 		DeleteOrganizationWithID(context.Background(), d.Id())
 	if err != nil {
@@ -68,7 +67,7 @@ func resourceOrganizationDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceOrganizationRead(d *schema.ResourceData, m interface{}) error {
-	influx := m.(meta).influxsdk.(influxdb2.Client)
+	influx := m.(meta).influxsdk
 	result, err := influx.OrganizationsAPI().
 		FindOrganizationByID(context.Background(), d.Id())
 	if err != nil {
@@ -98,7 +97,7 @@ func resourceOrganizationRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceOrganizationUpdate(d *schema.ResourceData, m interface{}) error {
-	influx := m.(meta).influxsdk.(influxdb2.Client)
+	influx := m.(meta).influxsdk
 	id := d.Id()
 	desc := d.Get("description").(string)
 

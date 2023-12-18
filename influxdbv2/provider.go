@@ -12,7 +12,7 @@ import (
 
 type meta struct {
 	influxsdk                  influxdb2.Client
-	legacyAuthorizationsClient *Client
+	legacyAuthorizationsClient *ClientWithResponses
 }
 
 func Provider() *schema.Provider {
@@ -23,9 +23,10 @@ func Provider() *schema.Provider {
 			"influxdb-v2_bucket":       dataSourceBucket(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"influxdb-v2_bucket":        ResourceBucket(),
-			"influxdb-v2_authorization": ResourceAuthorization(),
-			"influxdb-v2_organization":  ResourceOrganization(),
+			"influxdb-v2_bucket":               ResourceBucket(),
+			"influxdb-v2_authorization":        ResourceAuthorization(),
+			"influxdb-v2_organization":         ResourceOrganization(),
+			"influxdb-v2_legacy_authorization": ResourceLegacyAuthorization(),
 		},
 		Schema: map[string]*schema.Schema{
 			"url": {
@@ -72,7 +73,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		req.Header.Add("Authorization", fmt.Sprintf("Token %s", token))
 		return nil
 	}
-	legacy, err := NewClient(url, WithRequestEditorFn(addToken))
+	legacy, err := NewClientWithResponses(fmt.Sprint(url, "/private"), WithRequestEditorFn(addToken))
 	if err != nil {
 		return nil, fmt.Errorf("error creating legacy client: %s", err)
 	}
