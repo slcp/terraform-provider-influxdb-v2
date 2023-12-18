@@ -32,8 +32,9 @@ func ResourceLegacyAuthorization() *schema.Resource {
 				Required: true,
 			},
 			"password": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:      schema.TypeString,
+				Required:  true,
+				Sensitive: true,
 			},
 			"permissions": {
 				Type:     schema.TypeSet,
@@ -122,7 +123,6 @@ func resourceLegacyAuthorizationCreate(d *schema.ResourceData, m interface{}) er
 	if err != nil {
 		return err
 	}
-	err = d.Set("password", password)
 	if err != nil {
 		return err
 	}
