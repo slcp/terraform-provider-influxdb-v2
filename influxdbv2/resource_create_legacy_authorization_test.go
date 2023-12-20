@@ -15,7 +15,7 @@ func TestAccLegacyAuthorization(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccAuthorizationDestroyed,
+		CheckDestroy: testAccLegacyAuthorizationDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCreateLegacyAuthorization(),
@@ -110,10 +110,10 @@ func testAccLegacyAuthorizationDestroyed(s *terraform.State) error {
 		req.Header.Add("Authorization", fmt.Sprintf("Token %s", os.Getenv("INFLUXDB_V2_TOKEN")))
 		return nil
 	}
-	influx, err := NewClientWithResponses(os.Getenv("INFLUXDB_V2_URL"), WithRequestEditorFn(addToken))
+	influx, err := NewClientWithResponses(fmt.Sprint(os.Getenv("INFLUXDB_V2_URL"), "/private"), WithRequestEditorFn(addToken))
 	result, err := influx.GetLegacyAuthorizationsWithResponse(context.Background(), &GetLegacyAuthorizationsParams{})
-	// The only auth is from the onboarding
-	if len(*result.JSON200.Authorizations) != 1 {
+
+	if len(*result.JSON200.Authorizations) != 0 {
 		return fmt.Errorf("There should be only one remaining authorization but there are: %d", len(*result.JSON200.Authorizations))
 	}
 	if err != nil {
