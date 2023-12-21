@@ -16,6 +16,7 @@ func ResourceLegacyAuthorization() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"org_id": {
 				Type:     schema.TypeString,
+				ForceNew: true,
 				Required: true,
 			},
 			"description": {
@@ -29,16 +30,19 @@ func ResourceLegacyAuthorization() *schema.Resource {
 			},
 			"name": {
 				Type:     schema.TypeString,
+				ForceNew: true,
 				Required: true,
 			},
 			"password": {
 				Type:      schema.TypeString,
 				Required:  true,
+				ForceNew:  true,
 				Sensitive: true,
 			},
 			"permissions": {
 				Type:     schema.TypeSet,
 				Required: true,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"action": {
@@ -75,11 +79,13 @@ func ResourceLegacyAuthorization() *schema.Resource {
 			"user_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Computed: true,
 			},
 			"user_org_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Computed: true,
 			},
 		},
@@ -161,6 +167,14 @@ func resourceLegacyAuthorizationRead(d *schema.ResourceData, m interface{}) erro
 		return err
 	}
 	err = d.Set("name", authorization.JSON200.Token)
+	if err != nil {
+		return err
+	}
+	err = d.Set("org_id", authorization.JSON200.OrgID)
+	if err != nil {
+		return err
+	}
+	err = d.Set("description", authorization.JSON200.Description)
 	if err != nil {
 		return err
 	}

@@ -26,6 +26,7 @@ func ResourceBucket() *schema.Resource {
 			"org_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"retention_rules": {
 				Type:     schema.TypeSet,
@@ -47,6 +48,7 @@ func ResourceBucket() *schema.Resource {
 			"rp": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 			"created_at": {
 				Type:     schema.TypeString,
