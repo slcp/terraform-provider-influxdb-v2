@@ -73,7 +73,15 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		req.Header.Add("Authorization", fmt.Sprintf("Token %s", token))
 		return nil
 	}
-	legacy, err := NewClientWithResponses(fmt.Sprint(url, "/private"), WithRequestEditorFn(addToken))
+	skipSSLVerify := func(client *Client) error {
+		httpClient := &http.Client{}
+		httpClient.Transport = &http.Transport{
+			TLSClientConfig: tls,
+		}
+		client.Client = httpClient
+		return nil
+	}
+	legacy, err := NewClientWithResponses(fmt.Sprint(url, "/private"), WithRequestEditorFn(addToken), skipSSLVerify)
 	if err != nil {
 		return nil, fmt.Errorf("error creating legacy client: %s", err)
 	}
