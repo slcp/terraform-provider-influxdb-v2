@@ -18,14 +18,17 @@ func ResourceDBRPMapping() *schema.Resource {
 			"org_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"bucket_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"database": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"retention_policy": {
 				Type:     schema.TypeString,
