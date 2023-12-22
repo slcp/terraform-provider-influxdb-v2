@@ -6,7 +6,7 @@ The InfluxDB v2 provider allows Terraform to manage
 ## How to use
 
 
-#### Terraform 0.13.x
+#### Terraform 0.13.x +
 
 Add this snippet to your code:
 
@@ -14,8 +14,8 @@ Add this snippet to your code:
 terraform {
   required_providers {
     influxdb-v2 = {
-      source = "hasanhakkaev/influxdb-v2"
-      version = "0.4.4"
+      source = "slcp/influxdb-v2"
+      version = "0.4.10"
     }
   }
 }
@@ -42,7 +42,7 @@ A token can be acquired by executing the *onboarding* process, which is possible
 
 ### Available functionalities
 
-Documentation is available in [website/docs/](website/docs/).
+Documentation is available in [docs/](docs/).
 Influxdb v2 api documentation is available [here](https://v2.docs.influxdata.com/v2.0/api/).
 
 #### Data sources
@@ -55,7 +55,8 @@ Influxdb v2 api documentation is available [here](https://v2.docs.influxdata.com
 
 * bucket
 * authorization (tokens)
-* legacy_authorization (v1 compatibility layer)
+* legacy authorization (v1 compatibility layer)
+* database retention policy mapping (v1 compatibility layer)
 * organization
 
 ### Examples
@@ -90,9 +91,7 @@ task lint
 To run acceptance tests, execute these commands (requires `docker` and `jq`): 
 
 ```bash
-task start-influx
-task test
-task stop-influx
+task test:acceptance
 ```
 
 ### Build
