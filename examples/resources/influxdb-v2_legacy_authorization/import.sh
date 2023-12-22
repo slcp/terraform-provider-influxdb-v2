@@ -1,1 +1,1 @@
-terraform import influxdb-v2_legacy_authorization.example_authorization <AUTH_ID>
+terraform import influxdb-v2_legacy_authorization.example_authorization <LEGACY_AUTH_ID>

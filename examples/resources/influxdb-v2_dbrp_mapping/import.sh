@@ -1,0 +1,1 @@
+terraform import influxdb-v2_dbrp_mapping.example_dbrp_mapping <DBRP_MAPPING_ID>
