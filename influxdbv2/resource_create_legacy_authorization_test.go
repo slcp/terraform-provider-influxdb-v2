@@ -83,7 +83,7 @@ resource "influxdb-v2_legacy_authorization" "acctest" {
 	org_id = "` + os.Getenv("INFLUXDB_V2_ORG_ID") + `"
 	description = "Acceptance test legacy token 2"
 	name = "a user name"
-	password = "secure password"
+	password = "another secure password"
 	status = "active"
 	permissions {
 		action = "read"

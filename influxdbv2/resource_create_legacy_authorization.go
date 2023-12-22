@@ -16,6 +16,7 @@ func ResourceLegacyAuthorization() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"org_id": {
 				Type:     schema.TypeString,
+				ForceNew: true,
 				Required: true,
 			},
 			"description": {
@@ -29,6 +30,7 @@ func ResourceLegacyAuthorization() *schema.Resource {
 			},
 			"name": {
 				Type:     schema.TypeString,
+				ForceNew: true,
 				Required: true,
 			},
 			"password": {
@@ -39,6 +41,7 @@ func ResourceLegacyAuthorization() *schema.Resource {
 			"permissions": {
 				Type:     schema.TypeSet,
 				Required: true,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"action": {
@@ -75,11 +78,13 @@ func ResourceLegacyAuthorization() *schema.Resource {
 			"user_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Computed: true,
 			},
 			"user_org_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Computed: true,
 			},
 		},
@@ -143,6 +148,8 @@ func resourceLegacyAuthorizationDelete(d *schema.ResourceData, m interface{}) er
 
 func resourceLegacyAuthorizationRead(d *schema.ResourceData, m interface{}) error {
 	influx := m.(meta).legacyAuthorizationsClient
+	password := d.Get("password").(string)
+
 	authorization, err := influx.GetLegacyAuthorizationsIDWithResponse(context.Background(), d.Id(), &GetLegacyAuthorizationsIDParams{})
 	if err != nil || authorization.StatusCode() != 200 {
 		return fmt.Errorf("error getting authorization: %v", err)
@@ -164,6 +171,18 @@ func resourceLegacyAuthorizationRead(d *schema.ResourceData, m interface{}) erro
 	if err != nil {
 		return err
 	}
+	err = d.Set("org_id", authorization.JSON200.OrgID)
+	if err != nil {
+		return err
+	}
+	err = d.Set("description", authorization.JSON200.Description)
+	if err != nil {
+		return err
+	}
+	err = d.Set("password", password)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -171,15 +190,26 @@ func resourceLegacyAuthorizationUpdate(d *schema.ResourceData, m interface{}) er
 	influx := m.(meta).legacyAuthorizationsClient
 	id := d.Id()
 	description := d.Get("description").(string)
+	password := d.Get("password").(string)
 	status := AuthorizationUpdateRequestStatus(d.Get("status").(string))
+	ctx := context.Background()
 
-	authorization, err := influx.PatchLegacyAuthorizationsIDWithResponse(context.Background(), id, &PatchLegacyAuthorizationsIDParams{}, PatchLegacyAuthorizationsIDJSONRequestBody{
+	authorization, err := influx.PatchLegacyAuthorizationsIDWithResponse(ctx, id, &PatchLegacyAuthorizationsIDParams{}, PatchLegacyAuthorizationsIDJSONRequestBody{
 		Description: &description,
 		Status:      &status,
 	})
 	if err != nil || authorization.StatusCode() != 200 {
-		return fmt.Errorf("error updating authorization: %v", err)
+		return fmt.Errorf("error updating legacy authorization: %e", err)
 	}
+
+	// Update the password on the authorization
+	pass, err := influx.PostLegacyAuthorizationsIDPasswordWithResponse(ctx, id, &PostLegacyAuthorizationsIDPasswordParams{}, PostLegacyAuthorizationsIDPasswordJSONRequestBody{
+		Password: password,
+	})
+	if err != nil || pass.StatusCode() != 204 {
+		return fmt.Errorf("error updating legacy authorization password: %e", err)
+	}
+
 	return resourceLegacyAuthorizationRead(d, m)
 }
 

@@ -18,6 +18,7 @@ func ResourceAuthorization() *schema.Resource {
 			"org_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -31,6 +32,7 @@ func ResourceAuthorization() *schema.Resource {
 			"permissions": {
 				Type:     schema.TypeSet,
 				Required: true,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"action": {
