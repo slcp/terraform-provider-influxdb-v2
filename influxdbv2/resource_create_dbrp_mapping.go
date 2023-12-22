@@ -36,6 +36,7 @@ func ResourceDBRPMapping() *schema.Resource {
 			},
 			"default_policy": {
 				Type:     schema.TypeBool,
+				Optional: true,
 				Computed: true,
 			},
 		},
@@ -106,9 +107,6 @@ func resourceDBRPMappingRead(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 	err = d.Set("org_id", dbrp.Content.OrgID)
-	if err != nil {
-		return err
-	}
 	if err != nil {
 		return err
 	}
