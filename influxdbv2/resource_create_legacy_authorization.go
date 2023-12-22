@@ -74,10 +74,12 @@ func ResourceLegacyAuthorization() *schema.Resource {
 			},
 			"user_id": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 			"user_org_id": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 		},
