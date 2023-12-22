@@ -49,6 +49,7 @@ func resourceDBRPMappingCreate(d *schema.ResourceData, m interface{}) error {
 	orgId := d.Get("org_id").(string)
 	db := d.Get("database").(string)
 	rp := d.Get("retention_policy").(string)
+	dflt := d.Get("default_policy").(bool)
 
 	dbrp, err := influx.APIClient().PostDBRP(context.Background(), &domain.PostDBRPAllParams{
 		Body: domain.PostDBRPJSONRequestBody{
@@ -56,6 +57,7 @@ func resourceDBRPMappingCreate(d *schema.ResourceData, m interface{}) error {
 			Database:        db,
 			RetentionPolicy: rp,
 			OrgID:           &orgId,
+			Default:         &dflt,
 		}})
 	if err != nil {
 		return fmt.Errorf("error creating dbrp mapping: %e", err)
