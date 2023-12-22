@@ -47,6 +47,7 @@ func ResourceLegacyAuthorization() *schema.Resource {
 						"action": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 						"resource": {
 							Type:     schema.TypeSet,
@@ -56,18 +57,22 @@ func ResourceLegacyAuthorization() *schema.Resource {
 									"id": {
 										Type:     schema.TypeString,
 										Required: true,
+										ForceNew: true,
 									},
 									"org": {
 										Type:     schema.TypeString,
 										Optional: true,
+										ForceNew: true,
 									},
 									"org_id": {
 										Type:     schema.TypeString,
 										Required: true,
+										ForceNew: true,
 									},
 									"type": {
 										Type:     schema.TypeString,
 										Required: true,
+										ForceNew: true,
 									},
 								},
 							},
