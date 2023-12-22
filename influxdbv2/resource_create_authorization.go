@@ -38,6 +38,7 @@ func ResourceAuthorization() *schema.Resource {
 						"action": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 						"resource": {
 							Type:     schema.TypeSet,
@@ -47,18 +48,22 @@ func ResourceAuthorization() *schema.Resource {
 									"id": {
 										Type:     schema.TypeString,
 										Required: true,
+										ForceNew: true,
 									},
 									"org": {
 										Type:     schema.TypeString,
 										Optional: true,
+										ForceNew: true,
 									},
 									"org_id": {
 										Type:     schema.TypeString,
 										Required: true,
+										ForceNew: true,
 									},
 									"type": {
 										Type:     schema.TypeString,
 										Required: true,
+										ForceNew: true,
 									},
 								},
 							},
@@ -68,10 +73,12 @@ func ResourceAuthorization() *schema.Resource {
 			},
 			"user_id": {
 				Type:     schema.TypeString,
+				ForceNew: true,
 				Computed: true,
 			},
 			"user_org_id": {
 				Type:     schema.TypeString,
+				ForceNew: true,
 				Computed: true,
 			},
 			"token": {
