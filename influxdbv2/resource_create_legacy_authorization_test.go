@@ -23,7 +23,9 @@ func TestAccLegacyAuthorization(t *testing.T) {
 				Config: testAccCreateLegacyAuthorization(),
 				Check: resource.ComposeTestCheckFunc(
 					func(s *terraform.State) error {
-						return extractIdForResource(s, "influxdb-v2_legacy_authorization.acctest", &idOnCreate)
+						id := extractIdForResource(s, "influxdb-v2_legacy_authorization.acctest")
+						idOnCreate = id
+						return nil
 					},
 					resource.TestCheckResourceAttr("influxdb-v2_legacy_authorization.acctest", "org_id", os.Getenv("INFLUXDB_V2_ORG_ID")),
 					resource.TestCheckResourceAttr("influxdb-v2_legacy_authorization.acctest", "description", "Acceptance test legacy token"),
@@ -154,11 +156,10 @@ func testAccLegacyAuthorizationDestroyed(s *terraform.State) error {
 	return nil
 }
 
-func extractIdForResource(s *terraform.State, name string, target *string) error {
+func extractIdForResource(s *terraform.State, name string) string {
 	is := findResourceInState(s, name)
 	v, _ := is.Attributes["id"]
-	*target = v
-	return nil
+	return v
 }
 
 func findResourceInState(s *terraform.State, name string) *terraform.InstanceState {
@@ -173,9 +174,7 @@ func findResourceInState(s *terraform.State, name string) *terraform.InstanceSta
 
 func checkResourceHasBeenReplaced(name string, oid *string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		is := findResourceInState(s, name)
-		id, _ := is.Attributes["id"]
-		if id == *oid {
+		if id := extractIdForResource(s, name); id == *oid {
 			return fmt.Errorf("idd should have changed but it is still %s", id)
 		}
 		return nil
