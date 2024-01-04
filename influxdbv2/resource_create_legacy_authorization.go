@@ -46,27 +46,33 @@ func ResourceLegacyAuthorization() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"action": {
 							Type:     schema.TypeString,
+							ForceNew: true,
 							Required: true,
 						},
 						"resource": {
 							Type:     schema.TypeSet,
+							ForceNew: true,
 							Required: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
 										Type:     schema.TypeString,
+										ForceNew: true,
 										Required: true,
 									},
 									"org": {
 										Type:     schema.TypeString,
+										ForceNew: true,
 										Optional: true,
 									},
 									"org_id": {
 										Type:     schema.TypeString,
+										ForceNew: true,
 										Required: true,
 									},
 									"type": {
 										Type:     schema.TypeString,
+										ForceNew: true,
 										Required: true,
 									},
 								},
