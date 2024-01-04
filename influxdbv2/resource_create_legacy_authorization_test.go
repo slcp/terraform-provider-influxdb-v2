@@ -175,7 +175,7 @@ func findResourceInState(s *terraform.State, name string) *terraform.InstanceSta
 func checkResourceHasBeenReplaced(name string, oid *string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if id := extractIdForResource(s, name); id == *oid {
-			return fmt.Errorf("idd should have changed but it is still %s", id)
+			return fmt.Errorf("id should have changed but it is still %s", id)
 		}
 		return nil
 	}
