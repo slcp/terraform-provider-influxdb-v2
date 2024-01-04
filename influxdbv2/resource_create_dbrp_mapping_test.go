@@ -45,6 +45,7 @@ func TestAccDBRPMapping(t *testing.T) {
 					deleteDBRP(dbrpIdOnCreate)
 				},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("influxdb-v2_dbrp_mapping.acctest", "id"),
 					checkResourceHasBeenReplaced("influxdb-v2_dbrp_mapping.acctest", &dbrpIdOnCreate),
 				),
 			},

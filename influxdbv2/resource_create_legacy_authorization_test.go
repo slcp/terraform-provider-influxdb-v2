@@ -72,6 +72,7 @@ func TestAccLegacyAuthorization(t *testing.T) {
 					deleteLegacyAuthorization(legacyAuthIdOnCreate)
 				},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("influxdb-v2_legacy_authorization.acctest", "id"),
 					checkResourceHasBeenReplaced("influxdb-v2_legacy_authorization.acctest", &legacyAuthIdOnCreate),
 				),
 			},

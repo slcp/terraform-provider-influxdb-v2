@@ -75,6 +75,7 @@ func TestAccCreateBucket(t *testing.T) {
 					deleteBucket("acctest")
 				},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("influxdb-v2_bucket.acctest", "id"),
 					checkResourceHasBeenReplaced("influxdb-v2_bucket.acctest", &bucketIdOnCreate),
 				),
 			},

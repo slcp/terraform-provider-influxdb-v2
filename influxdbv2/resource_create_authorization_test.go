@@ -60,6 +60,7 @@ func TestAccAuthorization(t *testing.T) {
 					deleteAuth(authorizationIdOnCreate)
 				},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("influxdb-v2_authorization.acctest", "id"),
 					checkResourceHasBeenReplaced("influxdb-v2_authorization.acctest", &authorizationIdOnCreate),
 				),
 			},
