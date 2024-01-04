@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-var idOnCreate string
+var legacyAuthIdOnCreate string
 
 func TestAccLegacyAuthorization(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -24,7 +24,7 @@ func TestAccLegacyAuthorization(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					func(s *terraform.State) error {
 						id := extractIdForResource(s, "influxdb-v2_legacy_authorization.acctest")
-						idOnCreate = id
+						legacyAuthIdOnCreate = id
 						return nil
 					},
 					resource.TestCheckResourceAttr("influxdb-v2_legacy_authorization.acctest", "org_id", os.Getenv("INFLUXDB_V2_ORG_ID")),
@@ -55,7 +55,24 @@ func TestAccLegacyAuthorization(t *testing.T) {
 			{
 				Config: testAccLegacyUpdateAuthorizationPermissions(),
 				Check: resource.ComposeTestCheckFunc(
-					checkResourceHasBeenReplaced("influxdb-v2_legacy_authorization.acctest", &idOnCreate),
+					checkResourceHasBeenReplaced("influxdb-v2_legacy_authorization.acctest", &legacyAuthIdOnCreate),
+					// Extract new id for next test that is expecting resource recreation again
+					func(s *terraform.State) error {
+						id := extractIdForResource(s, "influxdb-v2_legacy_authorization.acctest")
+						legacyAuthIdOnCreate = id
+						return nil
+					},
+				),
+			},
+			{
+				// This test is designed to prove that the provider no longer errors when asked to read a resource that doesn't exist.
+				// The desired approach is to signal to terraform that the resource cannot be found so that the plan is to recreate it.
+				Config: testAccLegacyUpdateAuthorization(),
+				PreConfig: func() {
+					deleteLegacyAuthorization(legacyAuthIdOnCreate)
+				},
+				Check: resource.ComposeTestCheckFunc(
+					checkResourceHasBeenReplaced("influxdb-v2_legacy_authorization.acctest", &legacyAuthIdOnCreate),
 				),
 			},
 		},
@@ -154,4 +171,16 @@ func testAccLegacyAuthorizationDestroyed(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func deleteLegacyAuthorization(id string) {
+	addToken := func(ctx context.Context, req *http.Request) error {
+		req.Header.Add("Authorization", fmt.Sprintf("Token %s", os.Getenv("INFLUXDB_V2_TOKEN")))
+		return nil
+	}
+	influx, err := NewClientWithResponses(fmt.Sprint(os.Getenv("INFLUXDB_V2_URL"), "/private"), WithRequestEditorFn(addToken))
+	_, err = influx.DeleteLegacyAuthorizationsIDWithResponse(context.Background(), id, &DeleteLegacyAuthorizationsIDParams{})
+	if err != nil {
+		panic("Cannot delete legacy auth")
+	}
 }
