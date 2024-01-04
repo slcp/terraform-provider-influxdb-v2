@@ -11,6 +11,8 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
+var organizationIdOnCreate string
+
 func TestAccCreateOrganization(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -20,6 +22,11 @@ func TestAccCreateOrganization(t *testing.T) {
 			{
 				Config: testAccCreateOrganization(),
 				Check: resource.ComposeTestCheckFunc(
+					func(s *terraform.State) error {
+						id := extractIdForResource(s, "influxdb-v2_organization.acctest")
+						organizationIdOnCreate = id
+						return nil
+					},
 					resource.TestCheckResourceAttr(
 						"influxdb-v2_organization.acctest",
 						"description",
@@ -71,6 +78,18 @@ func TestAccCreateOrganization(t *testing.T) {
 						"updated_at",
 					),
 					testAccCheckOrganizationUpdate("influxdb-v2_organization.acctest"),
+				),
+			},
+			{
+				// This test is designed to prove that the provider no longer errors when asked to read a resource that doesn't exist.
+				// The desired approach is to signal to terraform that the resource cannot be found so that the plan is to recreate it.
+				Config: testAccCreateOrganization(),
+				PreConfig: func() {
+					deleteOrganization(organizationIdOnCreate)
+				},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("influxdb-v2_organization.acctest", "id"),
+					checkResourceHasBeenReplaced("influxdb-v2_organization.acctest", &organizationIdOnCreate),
 				),
 			},
 		},
@@ -131,4 +150,15 @@ func testAccOrganizationDestroyed(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func deleteOrganization(id string) {
+	influx := influxdb2.NewClient(
+		os.Getenv("INFLUXDB_V2_URL"),
+		os.Getenv("INFLUXDB_V2_TOKEN"),
+	)
+	err := influx.OrganizationsAPI().DeleteOrganizationWithID(context.Background(), id)
+	if err != nil {
+		panic("Cannot delete authorization bucket")
+	}
 }

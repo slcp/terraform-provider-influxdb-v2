@@ -129,22 +129,27 @@ func resourceAuthorizationRead(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error getting authorization: %v", err)
 	}
-	authorizations := getAuthorizationsById(result, d.Id())
+	found, authorization := getAuthorizationsById(result, d.Id())
 
-	err = d.Set("status", authorizations.Status)
+	if !found {
+		d.SetId("")
+		return nil
+	}
+
+	err = d.Set("status", authorization.Status)
 	if err != nil {
 		return err
 	}
-	err = d.Set("user_id", authorizations.UserID)
+	err = d.Set("user_id", authorization.UserID)
 	if err != nil {
 		return err
 	}
-	err = d.Set("user_org_id", authorizations.OrgID)
+	err = d.Set("user_org_id", authorization.OrgID)
 	if err != nil {
 		return err
 	}
-	if *authorizations.Token != "redacted" {
-		err = d.Set("token", authorizations.Token)
+	if *authorization.Token != "redacted" {
+		err = d.Set("token", authorization.Token)
 		if err != nil {
 			return err
 		}
@@ -197,12 +202,11 @@ func getPermissions(input interface{}) []domain.Permission {
 	return result
 }
 
-func getAuthorizationsById(input *[]domain.Authorization, id string) domain.Authorization {
-	result := domain.Authorization{}
+func getAuthorizationsById(input *[]domain.Authorization, id string) (bool, domain.Authorization) {
 	for _, authorization := range *input {
 		if *authorization.Id == id {
-			result = authorization
+			return true, authorization
 		}
 	}
-	return result
+	return false, domain.Authorization{}
 }

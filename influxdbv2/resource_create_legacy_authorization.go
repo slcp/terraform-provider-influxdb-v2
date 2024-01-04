@@ -151,6 +151,11 @@ func resourceLegacyAuthorizationRead(d *schema.ResourceData, m interface{}) erro
 	password := d.Get("password").(string)
 
 	authorization, err := influx.GetLegacyAuthorizationsIDWithResponse(context.Background(), d.Id(), &GetLegacyAuthorizationsIDParams{})
+	if authorization.StatusCode() == 404 {
+		d.SetId("")
+		return nil
+	}
+
 	if err != nil || authorization.StatusCode() != 200 {
 		return fmt.Errorf("error getting authorization: %v", err)
 	}

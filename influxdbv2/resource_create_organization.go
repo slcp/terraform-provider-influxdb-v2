@@ -71,6 +71,11 @@ func resourceOrganizationRead(d *schema.ResourceData, m interface{}) error {
 	result, err := influx.OrganizationsAPI().
 		FindOrganizationByID(context.Background(), d.Id())
 	if err != nil {
+		notFoundError := "not found: organization not found"
+		if err.Error() == notFoundError {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("error getting organization: %v", err)
 	}
 	err = d.Set("name", result.Name)

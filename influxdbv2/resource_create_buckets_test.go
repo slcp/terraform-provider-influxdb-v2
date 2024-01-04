@@ -11,6 +11,8 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
+var bucketIdOnCreate string
+
 func TestAccCreateBucket(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -20,6 +22,11 @@ func TestAccCreateBucket(t *testing.T) {
 			{
 				Config: testAccCreateBucket(),
 				Check: resource.ComposeTestCheckFunc(
+					func(s *terraform.State) error {
+						id := extractIdForResource(s, "influxdb-v2_bucket.acctest")
+						bucketIdOnCreate = id
+						return nil
+					},
 					resource.TestCheckResourceAttr(
 						"influxdb-v2_bucket.acctest",
 						"org_id",
@@ -58,6 +65,18 @@ func TestAccCreateBucket(t *testing.T) {
 						"influxdb-v2_bucket.acctest",
 						"type",
 					),
+				),
+			},
+			{
+				// This test is designed to prove that the provider no longer errors when asked to read a resource that doesn't exist.
+				// The desired approach is to signal to terraform that the resource cannot be found so that the plan is to recreate it.
+				Config: testAccCreateBucket(),
+				PreConfig: func() {
+					deleteBucket("acctest")
+				},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("influxdb-v2_bucket.acctest", "id"),
+					checkResourceHasBeenReplaced("influxdb-v2_bucket.acctest", &bucketIdOnCreate),
 				),
 			},
 			{
@@ -164,4 +183,20 @@ func testAccBucketDestroyed(s *terraform.State) error {
 		return fmt.Errorf("Cannot read bucket list")
 	}
 	return nil
+}
+
+func deleteBucket(name string) {
+	influx := influxdb2.NewClient(
+		os.Getenv("INFLUXDB_V2_URL"),
+		os.Getenv("INFLUXDB_V2_TOKEN"),
+	)
+	result, err := influx.BucketsAPI().FindBucketByName(context.Background(), name)
+	if err != nil {
+		panic("Cannot find bucket")
+	}
+
+	err = influx.BucketsAPI().DeleteBucket(context.Background(), result)
+	if err != nil {
+		panic("Cannot delete bucket")
+	}
 }

@@ -101,6 +101,11 @@ func resourceBucketRead(d *schema.ResourceData, m interface{}) error {
 	influx := m.(meta).influxsdk
 	result, err := influx.BucketsAPI().FindBucketByID(context.Background(), d.Id())
 	if err != nil {
+		notFoundError := "not found: bucket not found"
+		if err.Error() == notFoundError {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("error getting bucket: %v", err)
 	}
 
