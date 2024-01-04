@@ -13,6 +13,8 @@ import (
 	"github.com/influxdata/influxdb-client-go/v2/domain"
 )
 
+var dbrpIdOnCreate string
+
 func TestAccDBRPMapping(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,12 +24,28 @@ func TestAccDBRPMapping(t *testing.T) {
 			{
 				Config: testAccCreateDBRPMapping(),
 				Check: resource.ComposeTestCheckFunc(
+					func(s *terraform.State) error {
+						id := extractIdForResource(s, "influxdb-v2_dbrp_mapping.acctest")
+						dbrpIdOnCreate = id
+						return nil
+					},
 					resource.TestCheckResourceAttr("influxdb-v2_dbrp_mapping.acctest", "org_id", os.Getenv("INFLUXDB_V2_ORG_ID")),
 					resource.TestCheckResourceAttr("influxdb-v2_dbrp_mapping.acctest", "bucket_id", os.Getenv("INFLUXDB_V2_BUCKET_ID")),
 					resource.TestCheckResourceAttr("influxdb-v2_dbrp_mapping.acctest", "database", "legacy_database"),
 					resource.TestCheckResourceAttrSet("influxdb-v2_dbrp_mapping.acctest", "id"),
 					resource.TestCheckResourceAttr("influxdb-v2_dbrp_mapping.acctest", "retention_policy", "legacy_rp"),
 					resource.TestCheckResourceAttr("influxdb-v2_dbrp_mapping.acctest", "default_policy", "true"),
+				),
+			},
+			{
+				// This test is designed to prove that the provider no longer errors when asked to read a resource that doesn't exist.
+				// The desired approach is to signal to terraform that the resource cannot be found so that the plan is to recreate it.
+				Config: testAccCreateDBRPMapping(),
+				PreConfig: func() {
+					deleteDBRP(dbrpIdOnCreate)
+				},
+				Check: resource.ComposeTestCheckFunc(
+					checkResourceHasBeenReplaced("influxdb-v2_dbrp_mapping.acctest", &dbrpIdOnCreate),
 				),
 			},
 			{
@@ -87,4 +105,21 @@ func testAccDBRPMappingDestroyed(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func deleteDBRP(id string) {
+	orgId := os.Getenv("INFLUXDB_V2_ORG_ID")
+	influx := influxdb2.NewClient(
+		os.Getenv("INFLUXDB_V2_URL"),
+		os.Getenv("INFLUXDB_V2_TOKEN"),
+	)
+	err := influx.APIClient().DeleteDBRPID(context.Background(), &domain.DeleteDBRPIDAllParams{
+		DbrpID: id,
+		DeleteDBRPIDParams: domain.DeleteDBRPIDParams{
+			OrgID: &orgId,
+		},
+	})
+	if err != nil {
+		panic("Cannot delete dbrp")
+	}
 }

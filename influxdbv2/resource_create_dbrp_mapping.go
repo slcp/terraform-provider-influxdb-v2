@@ -97,6 +97,11 @@ func resourceDBRPMappingRead(d *schema.ResourceData, m interface{}) error {
 		},
 	})
 	if err != nil {
+		notFoundError := "not found: unable to find DBRP"
+		if err.Error() == notFoundError {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("error getting dbrp: %v", err)
 	}
 
