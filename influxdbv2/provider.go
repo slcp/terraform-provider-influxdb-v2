@@ -28,6 +28,7 @@ func Provider() *schema.Provider {
 			"influxdb-v2_organization":         ResourceOrganization(),
 			"influxdb-v2_legacy_authorization": ResourceLegacyAuthorization(),
 			"influxdb-v2_dbrp_mapping":         ResourceDBRPMapping(),
+			"influxdb-v2_scraper":              ResourceScraper(),
 		},
 		Schema: map[string]*schema.Schema{
 			"url": {
