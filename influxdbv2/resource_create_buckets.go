@@ -37,6 +37,10 @@ func ResourceBucket() *schema.Resource {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
+						"shard_group_duration_seconds": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
 						"type": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -99,6 +103,10 @@ func resourceBucketDelete(d *schema.ResourceData, m interface{}) error {
 
 func resourceBucketRead(d *schema.ResourceData, m interface{}) error {
 	influx := m.(meta).influxsdk
+
+	// Get user provided retention rules
+	providedRR := d.Get("retention_rules").(*schema.Set).List()
+
 	result, err := influx.BucketsAPI().FindBucketByID(context.Background(), d.Id())
 	if err != nil {
 		notFoundError := "not found: bucket not found"
@@ -111,10 +119,22 @@ func resourceBucketRead(d *schema.ResourceData, m interface{}) error {
 
 	// Reformat retention rules array
 	var rr []map[string]interface{}
-	for _, retention_rule := range result.RetentionRules {
+	for i, retention_rule := range result.RetentionRules {
 		tmp := map[string]interface{}{
 			"every_seconds": retention_rule.EverySeconds,
 			"type":          retention_rule.Type,
+		}
+		// Get user provided retention rules
+		provided, ok := providedRR[i].(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("error reading user provided retention rules")
+		}
+		// If the user provided shard_group_duration_seconds, return the value from the API so that
+		// Terraform can produce a plan against it. If not, don't return because this is an optional
+		// property. It shouldn't be present if not declared. When creating/updating we make sure it
+		// is set to the default value when not provided by the user.
+		if provided["shard_group_duration_seconds"].(int) != 0 {
+			tmp["shard_group_duration_seconds"] = int(*retention_rule.ShardGroupDurationSeconds)
 		}
 		rr = append(rr, tmp)
 	}
@@ -194,11 +214,41 @@ func getRetentionRules(input interface{}) domain.RetentionRules {
 	result := domain.RetentionRules{}
 	retentionRulesSet := input.(*schema.Set).List()
 	for _, retentionRule := range retentionRulesSet {
+		defaultType := domain.RetentionRuleType("expire")
 		rr, ok := retentionRule.(map[string]interface{})
+
 		if ok {
-			each := domain.RetentionRule{EverySeconds: int64(rr["every_seconds"].(int))}
+			each := domain.RetentionRule{
+				EverySeconds: int64(rr["every_seconds"].(int)),
+				Type:         &defaultType,
+			}
+			if raw, ok := rr["shard_group_duration_seconds"].(int); ok {
+				if raw != 0 {
+					v := int64(raw)
+					each.ShardGroupDurationSeconds = &v
+				} else {
+					// When user has not provided a shard group duration, ensure that
+					// it set to the default as we could be updating instead of creating
+					d := getDefaultShardGroupDuration(each.EverySeconds)
+					each.ShardGroupDurationSeconds = &d
+				}
+			}
 			result = append(result, each)
 		}
 	}
 	return result
+}
+
+// https://docs.influxdata.com/influxdb/v2/reference/internals/shards/#shard-group-duration
+func getDefaultShardGroupDuration(rps int64) int64 {
+	hour := int64(60 * 60)
+	day := hour * 24
+	month := 180 * day
+	if rps < 2*day {
+		return 1 * hour
+	}
+	if rps < 6*month {
+		return 1 * day
+	}
+	return 7 * day
 }
