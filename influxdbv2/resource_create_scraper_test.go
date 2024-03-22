@@ -9,9 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/influxdata/influxdb-client-go/v2/domain"
 )
 
-// var bucketIdOnCreate string
+var scraperIdOnCreate string
 
 func TestAccCreateScraper(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -22,11 +23,11 @@ func TestAccCreateScraper(t *testing.T) {
 			{
 				Config: testAccCreateScraper(),
 				Check: resource.ComposeTestCheckFunc(
-					// func(s *terraform.State) error {
-					// 	id := extractIdForResource(s, "influxdb-v2_bucket.acctest")
-					// 	bucketIdOnCreate = id
-					// 	return nil
-					// },
+					func(s *terraform.State) error {
+						id := extractIdForResource(s, "influxdb-v2_scraper.acctest")
+						scraperIdOnCreate = id
+						return nil
+					},
 					resource.TestCheckResourceAttr(
 						"influxdb-v2_scraper.acctest",
 						"org_id",
@@ -47,6 +48,48 @@ func TestAccCreateScraper(t *testing.T) {
 						"url",
 						"http://localhost:8086/metrics",
 					),
+					resource.TestCheckResourceAttr(
+						"influxdb-v2_scraper.acctest",
+						"type",
+						"prometheus",
+					),
+				),
+			},
+			{
+				// This test is designed to prove that the provider no longer errors when asked to read a resource that doesn't exist.
+				// The desired approach is to signal to terraform that the resource cannot be found so that the plan is to recreate it.
+				Config: testAccCreateScraper(),
+				PreConfig: func() {
+					deleteScraper("acctest")
+				},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("influxdb-v2_scraper.acctest", "id"),
+					checkResourceHasBeenReplaced("influxdb-v2_scraper.acctest", &scraperIdOnCreate),
+				),
+			},
+			{
+				Config: testAccUpdateScraper(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"influxdb-v2_scraper.acctest",
+						"org_id",
+						os.Getenv("INFLUXDB_V2_ORG_ID"),
+					),
+					resource.TestCheckResourceAttr(
+						"influxdb-v2_scraper.acctest",
+						"name",
+						"acctest2",
+					),
+					resource.TestCheckResourceAttr(
+						"influxdb-v2_scraper.acctest",
+						"allow_insecure",
+						"false",
+					),
+					resource.TestCheckResourceAttr(
+						"influxdb-v2_scraper.acctest",
+						"url",
+						"http://localhost:8086/metrics2",
+					),
 					testAccCheckUpdate("influxdb-v2_scraper.acctest"),
 					resource.TestCheckResourceAttr(
 						"influxdb-v2_scraper.acctest",
@@ -55,80 +98,10 @@ func TestAccCreateScraper(t *testing.T) {
 					),
 				),
 			},
-			// {
-			// 	// This test is designed to prove that the provider no longer errors when asked to read a resource that doesn't exist.
-			// 	// The desired approach is to signal to terraform that the resource cannot be found so that the plan is to recreate it.
-			// 	Config: testAccCreateScraper(),
-			// 	PreConfig: func() {
-			// 		deleteScraper("acctest")
-			// 	},
-			// 	Check: resource.ComposeTestCheckFunc(
-			// 		resource.TestCheckResourceAttrSet("influxdb-v2_scraper.acctest", "id"),
-			// 		checkResourceHasBeenReplaced("influxdb-v2_scraper.acctest", &bucketIdOnCreate),
-			// 	),
-			// },
-			// {
-			// 	Config: testAccUpdateScraper(),
-			// 	Check: resource.ComposeTestCheckFunc(
-			// 		resource.TestCheckResourceAttr(
-			// 			"influxdb-v2_scraper.acctest",
-			// 			"org_id",
-			// 			os.Getenv("INFLUXDB_V2_ORG_ID"),
-			// 		),
-			// 		resource.TestCheckResourceAttr(
-			// 			"influxdb-v2_scraper.acctest",
-			// 			"description",
-			// 			"Acceptance test bucket 2",
-			// 		),
-			// 		resource.TestCheckResourceAttr(
-			// 			"influxdb-v2_scraper.acctest",
-			// 			"name",
-			// 			"acctest",
-			// 		),
-			// 		resource.TestCheckResourceAttr(
-			// 			"influxdb-v2_scraper.acctest",
-			// 			"rp",
-			// 			"",
-			// 		),
-			// 		resource.TestCheckResourceAttr(
-			// 			"influxdb-v2_scraper.acctest",
-			// 			"retention_rules.0.every_seconds",
-			// 			"3630",
-			// 		),
-			// 		resource.TestCheckResourceAttrSet(
-			// 			"influxdb-v2_scraper.acctest",
-			// 			"created_at",
-			// 		),
-			// 		resource.TestCheckResourceAttrSet(
-			// 			"influxdb-v2_scraper.acctest",
-			// 			"updated_at",
-			// 		),
-			// 		testAccCheckUpdate("influxdb-v2_scraper.acctest"),
-			// 		resource.TestCheckResourceAttrSet(
-			// 			"influxdb-v2_scraper.acctest",
-			// 			"type",
-			// 		),
-			// 	),
-			// },
 		},
 	})
 }
 
-// var lastUpdate = ""
-
-//	func testAccCheckUpdate(n string) resource.TestCheckFunc {
-//		return func(s *terraform.State) error {
-//			rs, ok := s.RootModule().Resources[n]
-//			if !ok {
-//				return fmt.Errorf("Resource %s doesn't exist", n)
-//			}
-//			if lastUpdate == rs.Primary.Attributes["updated_at"] {
-//				return fmt.Errorf("updated_at has not changed since last execution")
-//			}
-//			lastUpdate = rs.Primary.Attributes["updated_at"]
-//			return nil
-//		}
-//	}
 func testAccCreateScraper() string {
 	return `
 resource "influxdb-v2_bucket" "acctest" {
@@ -149,18 +122,25 @@ resource "influxdb-v2_scraper" "acctest" {
 `
 }
 
-// func testAccUpdateScraper() string {
-// 	return `
-// resource "influxdb-v2_scraper" "acctest" {
-//     description = "Acceptance test bucket 2"
-//     name = "acctest"
-//     org_id = "` + os.Getenv("INFLUXDB_V2_ORG_ID") + `"
-//     retention_rules {
-//         every_seconds = "3630"
-//     }
-// }
-// `
-// }
+func testAccUpdateScraper() string {
+	return `
+resource "influxdb-v2_bucket" "acctest" {
+	description = "Acceptance test bucket" 
+	name = "acctest" 
+	org_id = "` + os.Getenv("INFLUXDB_V2_ORG_ID") + `"
+	retention_rules {
+		every_seconds = "3640"
+	}
+}
+resource "influxdb-v2_scraper" "acctest" {
+	name = "acctest2" 
+	org_id = "` + os.Getenv("INFLUXDB_V2_ORG_ID") + `"
+	allow_insecure = false
+	bucket_id = influxdb-v2_bucket.acctest.id
+	url = "http://localhost:8086/metrics2"
+}
+`
+}
 
 func testAccScraperDestroyed(s *terraform.State) error {
 	influx := influxdb2.NewClient(
@@ -181,18 +161,28 @@ func testAccScraperDestroyed(s *terraform.State) error {
 	return nil
 }
 
-// func deleteScraper(name string) {
-// 	influx := influxdb2.NewClient(
-// 		os.Getenv("INFLUXDB_V2_URL"),
-// 		os.Getenv("INFLUXDB_V2_TOKEN"),
-// 	)
-// 	result, err := influx.BucketsAPI().FindBucketByName(context.Background(), name)
-// 	if err != nil {
-// 		panic("Cannot find bucket")
-// 	}
+func deleteScraper(name string) {
+	influx := influxdb2.NewClient(
+		os.Getenv("INFLUXDB_V2_URL"),
+		os.Getenv("INFLUXDB_V2_TOKEN"),
+	)
+	result, err := influx.APIClient().GetScrapers(context.Background(), &domain.GetScrapersParams{
+		Name: &name,
+	})
+	if err != nil {
+		panic("Cannot find scraper")
+	}
 
-// 	err = influx.BucketsAPI().DeleteScraper(context.Background(), result)
-// 	if err != nil {
-// 		panic("Cannot delete bucket")
-// 	}
-// }
+	if len(*result.Configurations) > 1 {
+		panic("There should be only one scraper")
+	}
+
+	scraper := (*result.Configurations)[0]
+
+	err = influx.APIClient().DeleteScrapersID(context.Background(), &domain.DeleteScrapersIDAllParams{
+		ScraperTargetID: *scraper.Id,
+	})
+	if err != nil {
+		panic("Cannot delete scraper")
+	}
+}

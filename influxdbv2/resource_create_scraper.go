@@ -13,37 +13,31 @@ func ResourceScraper() *schema.Resource {
 		Create: resourceScraperCreate,
 		Delete: resourceScraperDelete,
 		Read:   resourceScraperRead,
-		// Update: resourceScraperUpdate,
+		Update: resourceScraperUpdate,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"org_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"bucket_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"url": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"type": {
 				Type:     schema.TypeString,
 				Computed: true,
-				ForceNew: true,
 			},
 			"allow_insecure": {
 				Type:     schema.TypeBool,
 				Required: true,
-				ForceNew: true,
 			},
 		},
 	}
@@ -94,7 +88,7 @@ func resourceScraperRead(d *schema.ResourceData, m interface{}) error {
 		ScraperTargetID: d.Id(),
 	})
 	if err != nil {
-		notFoundError := "not found: Scraper not found"
+		notFoundError := "not found: scraper target is not found"
 		if err.Error() == notFoundError {
 			d.SetId("")
 			return nil
@@ -122,7 +116,14 @@ func resourceScraperRead(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return err
 	}
-	err = d.Set("allow_insecure", *result.AllowInsecure)
+
+	// When insecure is set to false this pointer is nil
+	concreteresult := *result
+	insecure := false
+	if concreteresult.AllowInsecure != nil {
+		insecure = *concreteresult.AllowInsecure
+	}
+	err = d.Set("allow_insecure", insecure)
 	if err != nil {
 		return err
 	}
@@ -130,28 +131,32 @@ func resourceScraperRead(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
-// func resourceScraperUpdate(d *schema.ResourceData, m interface{}) error {
-// 	influx := m.(meta).influxsdk
-// 	retentionRules := getRetentionRules(d.Get("retention_rules"))
+func resourceScraperUpdate(d *schema.ResourceData, m interface{}) error {
+	influx := m.(meta).influxsdk
+	orgid := d.Get("org_id").(string)
+	bucketid := d.Get("bucket_id").(string)
+	name := d.Get("name").(string)
+	insecure := d.Get("allow_insecure").(bool)
+	targettype := domain.ScraperTargetRequestType("prometheus")
+	url := d.Get("url").(string)
 
-// 	id := d.Id()
-// 	desc := d.Get("description").(string)
-// 	orgid := d.Get("org_id").(string)
-// 	retpe := d.Get("rp").(string)
-// 	updateScraper := &domain.Scraper{
-// 		Id:             &id,
-// 		Description:    &desc,
-// 		Name:           d.Get("name").(string),
-// 		OrgID:          &orgid,
-// 		RetentionRules: retentionRules,
-// 		Rp:             &retpe,
-// 	}
-// 	var err error
-// 	_, err = influx.ScrapersAPI().UpdateScraper(context.Background(), updateScraper)
+	updateScraper := &domain.PatchScrapersIDAllParams{
+		ScraperTargetID: d.Id(),
+		Body: domain.PatchScrapersIDJSONRequestBody{
+			OrgID:         &orgid,
+			BucketID:      &bucketid,
+			Name:          &name,
+			AllowInsecure: &insecure,
+			Type:          &targettype,
+			Url:           &url,
+		},
+	}
+	var err error
+	_, err = influx.APIClient().PatchScrapersID(context.Background(), updateScraper)
 
-// 	if err != nil {
-// 		return fmt.Errorf("error updating Scraper: %v", err)
-// 	}
+	if err != nil {
+		return fmt.Errorf("error updating Scraper: %v", err)
+	}
 
-// 	return resourceScraperRead(d, m)
-// }
+	return resourceScraperRead(d, m)
+}
