@@ -142,8 +142,8 @@ func setBucketData(data *schema.ResourceData, bucket *domain.Bucket) diag.Diagno
 	for _, rule := range bucket.RetentionRules {
 		mapped := map[string]interface{}{
 			"every_seconds":                rule.EverySeconds,
-			"shard_group_duration_seconds": rule.ShardGroupDurationSeconds,
-			"type":                         rule.Type,
+			"shard_group_duration_seconds": int(*rule.ShardGroupDurationSeconds),
+			"type":                         *rule.Type,
 		}
 		retentionRules = append(retentionRules, mapped)
 	}

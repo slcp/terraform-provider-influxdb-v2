@@ -52,6 +52,11 @@ func TestAccCreateBucket(t *testing.T) {
 						"retention_rules.0.every_seconds",
 						"3640",
 					),
+					resource.TestCheckResourceAttr(
+						"influxdb-v2_bucket.acctest",
+						"retention_rules.0.shard_group_duration_seconds",
+						"3610",
+					),
 					resource.TestCheckResourceAttrSet(
 						"influxdb-v2_bucket.acctest",
 						"created_at",
@@ -107,6 +112,10 @@ func TestAccCreateBucket(t *testing.T) {
 						"retention_rules.0.every_seconds",
 						"3630",
 					),
+					resource.TestCheckNoResourceAttr(
+						"influxdb-v2_bucket.acctest",
+						"retention_rules.0.shard_group_duration_seconds",
+					),
 					resource.TestCheckResourceAttrSet(
 						"influxdb-v2_bucket.acctest",
 						"created_at",
@@ -149,6 +158,7 @@ resource "influxdb-v2_bucket" "acctest" {
     org_id = "` + os.Getenv("INFLUXDB_V2_ORG_ID") + `"
     retention_rules {
         every_seconds = "3640"
+		shard_group_duration_seconds = "3610"
     }
 }
 `

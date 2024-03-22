@@ -18,6 +18,8 @@ func TestAccReadBucket(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.influxdb-v2_bucket.by_name", "name", "AcctestBucket"),
 					resource.TestCheckResourceAttr("data.influxdb-v2_bucket.by_name", "description", "Desc Acctest"),
+					resource.TestCheckResourceAttr("data.influxdb-v2_bucket.by_name", "retention_rules.0.shard_group_duration_seconds", "3620"),
+					resource.TestCheckResourceAttr("data.influxdb-v2_bucket.by_name", "retention_rules.0.type", "expire"),
 				),
 			},
 		},
@@ -31,6 +33,7 @@ func testDataSourceBucketConfig() string {
 			org_id = "` + os.Getenv("INFLUXDB_V2_ORG_ID") + `"
     		retention_rules {
         		every_seconds = "3640"
+				shard_group_duration_seconds = "3620"
     			}
 			}
 			data "influxdb-v2_bucket" "by_name" {
