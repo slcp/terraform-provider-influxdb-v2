@@ -17,16 +17,16 @@ jobs:
           go-version-file: 'go.mod'
       - run: go version
 
-      - name: Setup influxdb
-        env: 
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-        run: |
-          source ./scripts/setup_influxdb.sh
-          echo "::set-env name=INFLUXDB_V2_URL::$INFLUXDB_V2_URL"
-          echo "::set-env name=INFLUXDB_V2_TOKEN::$INFLUXDB_V2_TOKEN"
-          echo "::set-env name=INFLUXDB_V2_BUCKET_ID::$INFLUXDB_V2_BUCKET_ID"
-          echo "::set-env name=INFLUXDB_V2_ORG_ID::$INFLUXDB_V2_ORG_ID"
-          echo "::set-env name=TF_ACC::1"
+      # - name: Setup influxdb
+      #   env: 
+      #     ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+      #   run: |
+      #     source ./scripts/setup_influxdb.sh
+      #     echo "::set-env name=INFLUXDB_V2_URL::$INFLUXDB_V2_URL"
+      #     echo "::set-env name=INFLUXDB_V2_TOKEN::$INFLUXDB_V2_TOKEN"
+      #     echo "::set-env name=INFLUXDB_V2_BUCKET_ID::$INFLUXDB_V2_BUCKET_ID"
+      #     echo "::set-env name=INFLUXDB_V2_ORG_ID::$INFLUXDB_V2_ORG_ID"
+      #     echo "::set-env name=TF_ACC::1"
 
       - name: Run tests
         run : task test:acceptance
