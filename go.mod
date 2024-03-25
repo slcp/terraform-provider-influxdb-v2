@@ -7,7 +7,7 @@ require (
 	github.com/hashicorp/terraform-plugin-docs v0.18.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.33.0
 	github.com/influxdata/influxdb-client-go/v2 v2.13.0
-	github.com/labstack/echo/v4 v4.11.3
+	github.com/labstack/echo/v4 v4.11.4
 	github.com/oapi-codegen/runtime v1.1.0
 )
 
@@ -54,7 +54,7 @@ require (
 	github.com/influxdata/line-protocol v0.0.0-20210922203350-b1ad95c89adf // indirect
 	github.com/invopop/yaml v0.2.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
-	github.com/labstack/gommon v0.4.0 // indirect
+	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
