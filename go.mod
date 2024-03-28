@@ -1,6 +1,8 @@
 module github.com/hasanhakkaev/terraform-provider-influxdb-v2
 
-go 1.20
+go 1.21
+
+toolchain go1.22.1
 
 require (
 	github.com/getkin/kin-openapi v0.122.0
