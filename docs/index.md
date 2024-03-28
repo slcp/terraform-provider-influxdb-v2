@@ -14,7 +14,6 @@ description: |-
 
 ```terraform
 provider "influxdb-v2" {
-  host  = "http://localhost:8086"    # changeme
   token = "super-secret-admin-token" # changeme
 }
 ```
@@ -24,6 +23,7 @@ provider "influxdb-v2" {
 
 ### Optional
 
+- `health_check` (String) use /ping instead of /ready to check connection to host
 - `skip_ssl_verify` (Boolean) skip ssl verify on connection
 - `token` (String, Sensitive)
 - `url` (String)
