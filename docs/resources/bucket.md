@@ -57,12 +57,5 @@ Required:
 
 Optional:
 
+- `shard_group_duration_seconds` (Number)
 - `type` (String)
-
-## Import
-
-Import is supported using the following syntax:
-
-```shell
-terraform import influxdb-v2_bucket.example_bucket <BUCKET_ID>
-```

@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
@@ -51,6 +52,13 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("INFLUXDB_SKIP_SSL_VERIFY", "0"),
 			},
+			"health_check": {
+				Type:         schema.TypeString,
+				Description:  "use /ping instead of /ready to check connection to host",
+				Optional:     true,
+				Default:      "ready",
+				ValidateFunc: validation.StringInSlice([]string{"ready", "ping"}, false),
+			},
 		},
 		ConfigureFunc: providerConfigure,
 	}
@@ -60,15 +68,23 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	url := d.Get("url").(string)
 	token := d.Get("token").(string)
 	sslv := d.Get("skip_ssl_verify").(bool)
+	check := d.Get("health_check").(string)
 	tls := &tls.Config{
 		InsecureSkipVerify: sslv,
 	}
 	opts := influxdb2.DefaultOptions().SetTLSConfig(tls)
 	influx := influxdb2.NewClientWithOptions(url, token, opts)
 
-	_, err := influx.Ready(context.Background())
-	if err != nil {
-		return nil, fmt.Errorf("error pinging server: %s", err)
+	if check == "ping" {
+		_, err := influx.Ping(context.Background())
+		if err != nil {
+			return nil, fmt.Errorf("error pinging server on /ping: %s", err)
+		}
+	} else {
+		_, err := influx.Ready(context.Background())
+		if err != nil {
+			return nil, fmt.Errorf("error pinging server on /ready: %s", err)
+		}
 	}
 
 	addToken := func(ctx context.Context, req *http.Request) error {
