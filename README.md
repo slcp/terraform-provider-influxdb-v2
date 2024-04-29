@@ -14,8 +14,8 @@ Add this snippet to your code:
 terraform {
   required_providers {
     influxdb-v2 = {
-      source = "hasanhakkaev/influxdb-v2"
-      version = "0.4.4"
+      source = "slcp/influxdb-v2"
+      version = "0.5.3"
     }
   }
 }
@@ -42,7 +42,7 @@ A token can be acquired by executing the *onboarding* process, which is possible
 
 ### Available functionalities
 
-Documentation is available in [website/docs/](website/docs/).
+Documentation is available in [docs/](docs/).
 Influxdb v2 api documentation is available [here](https://v2.docs.influxdata.com/v2.0/api/).
 
 #### Data sources
@@ -56,7 +56,9 @@ Influxdb v2 api documentation is available [here](https://v2.docs.influxdata.com
 * bucket
 * authorization (tokens)
 * legacy_authorization (v1 compatibility layer)
+* dbrp_mapping (v1 compatibility layer)
 * organization
+* scraper
 
 ### Examples
 
