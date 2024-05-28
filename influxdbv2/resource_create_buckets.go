@@ -72,7 +72,12 @@ func ResourceBucket() *schema.Resource {
 
 func resourceBucketCreate(d *schema.ResourceData, m interface{}) error {
 	influx := m.(meta).influxsdk
-	retentionRules := getRetentionRules(d.Get("retention_rules"))
+
+	retentionRules, err := getRetentionRules(d.Get("retention_rules"))
+	if err != nil {
+		return err
+	}
+
 	desc := d.Get("description").(string)
 	orgid := d.Get("org_id").(string)
 	retpe := d.Get("rp").(string)
@@ -133,8 +138,11 @@ func resourceBucketRead(d *schema.ResourceData, m interface{}) error {
 		// Terraform can produce a plan against it. If not, don't return because this is an optional
 		// property. It shouldn't be present if not declared. When creating/updating we make sure it
 		// is set to the default value when not provided by the user.
-		if provided["shard_group_duration_seconds"].(int) != 0 {
+		if provided["shard_group_duration_seconds"].(int) > 0 {
 			tmp["shard_group_duration_seconds"] = int(*retention_rule.ShardGroupDurationSeconds)
+		}
+		if provided["shard_group_duration_seconds"].(int) == -1 {
+			tmp["shard_group_duration_seconds"] = -1
 		}
 		rr = append(rr, tmp)
 	}
@@ -185,8 +193,13 @@ func resourceBucketRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceBucketUpdate(d *schema.ResourceData, m interface{}) error {
+	var err error
 	influx := m.(meta).influxsdk
-	retentionRules := getRetentionRules(d.Get("retention_rules"))
+
+	retentionRules, err := getRetentionRules(d.Get("retention_rules"))
+	if err != nil {
+		return err
+	}
 
 	id := d.Id()
 	desc := d.Get("description").(string)
@@ -200,7 +213,6 @@ func resourceBucketUpdate(d *schema.ResourceData, m interface{}) error {
 		RetentionRules: retentionRules,
 		Rp:             &retpe,
 	}
-	var err error
 	_, err = influx.BucketsAPI().UpdateBucket(context.Background(), updateBucket)
 
 	if err != nil {
@@ -210,33 +222,47 @@ func resourceBucketUpdate(d *schema.ResourceData, m interface{}) error {
 	return resourceBucketRead(d, m)
 }
 
-func getRetentionRules(input interface{}) domain.RetentionRules {
+func getRetentionRules(input interface{}) (domain.RetentionRules, error) {
 	result := domain.RetentionRules{}
 	retentionRulesSet := input.(*schema.Set).List()
 	for _, retentionRule := range retentionRulesSet {
 		defaultType := domain.RetentionRuleType("expire")
-		rr, ok := retentionRule.(map[string]interface{})
 
-		if ok {
-			each := domain.RetentionRule{
-				EverySeconds: int64(rr["every_seconds"].(int)),
-				Type:         &defaultType,
-			}
-			if raw, ok := rr["shard_group_duration_seconds"].(int); ok {
-				if raw != 0 {
-					v := int64(raw)
-					each.ShardGroupDurationSeconds = &v
-				} else {
-					// When user has not provided a shard group duration, ensure that
-					// it set to the default as we could be updating instead of creating
-					d := getDefaultShardGroupDuration(each.EverySeconds)
-					each.ShardGroupDurationSeconds = &d
-				}
-			}
-			result = append(result, each)
+		rr, ok := retentionRule.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("Error reading retention rules")
 		}
+		each := domain.RetentionRule{
+			EverySeconds: int64(rr["every_seconds"].(int)),
+			Type:         &defaultType,
+		}
+
+		seconds, ok := rr["shard_group_duration_seconds"].(int)
+		if !ok {
+			return nil, fmt.Errorf("Error reading retention rules duration")
+		}
+
+		// -1 is a flag that signals the user does not wish for the shard group
+		// duration to be managed in any way by the provider
+		if seconds == -1 {
+			result = append(result, each)
+			continue
+		}
+
+		if seconds > 0 {
+			v := int64(seconds)
+			each.ShardGroupDurationSeconds = &v
+			result = append(result, each)
+			continue
+		}
+
+		// When user has not provided a shard group duration, ensure that
+		// it set to the default as we could be updating instead of creating
+		d := getDefaultShardGroupDuration(each.EverySeconds)
+		each.ShardGroupDurationSeconds = &d
+		result = append(result, each)
 	}
-	return result
+	return result, nil
 }
 
 // https://docs.influxdata.com/influxdb/v2/reference/internals/shards/#shard-group-duration
