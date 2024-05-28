@@ -57,5 +57,7 @@ Required:
 
 Optional:
 
-- `shard_group_duration_seconds` (Number)
+- `shard_group_duration_seconds` (Number) 
 - `type` (String)
+
+Note: Setting `shard_group_duration_seconds` to `-1` is used to prevent the provider from managing it in any way. If it is not set at all then then provider will manage the value using the defaults from Influx 2. This is because the property is not reported by Influx when set to a default value, this presents a challenge to understand the state of the bucket when `shard_group_duration_seconds` goes from a user defined value to a default value.
