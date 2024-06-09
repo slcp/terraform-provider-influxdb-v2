@@ -6,7 +6,7 @@ toolchain go1.22.1
 
 require (
 	github.com/getkin/kin-openapi v0.124.0
-	github.com/hashicorp/terraform-plugin-docs v0.19.3
+	github.com/hashicorp/terraform-plugin-docs v0.19.4
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.34.0
 	github.com/influxdata/influxdb-client-go/v2 v2.13.0
 	github.com/labstack/echo/v4 v4.12.0
