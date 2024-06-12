@@ -131,6 +131,54 @@ func TestAccCreateBucket(t *testing.T) {
 					),
 				),
 			},
+			{
+				Config: testAccNoShardGroupDurationManagementBucket(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"influxdb-v2_bucket.acctest_no_shard",
+						"org_id",
+						os.Getenv("INFLUXDB_V2_ORG_ID"),
+					),
+					resource.TestCheckResourceAttr(
+						"influxdb-v2_bucket.acctest_no_shard",
+						"description",
+						"Acceptance test bucket",
+					),
+					resource.TestCheckResourceAttr(
+						"influxdb-v2_bucket.acctest_no_shard",
+						"name",
+						"acctest",
+					),
+					resource.TestCheckResourceAttr(
+						"influxdb-v2_bucket.acctest_no_shard",
+						"rp",
+						"",
+					),
+					resource.TestCheckResourceAttr(
+						"influxdb-v2_bucket.acctest_no_shard",
+						"retention_rules.0.every_seconds",
+						"3640",
+					),
+					resource.TestCheckResourceAttr(
+						"influxdb-v2_bucket.acctest_no_shard",
+						"retention_rules.0.shard_group_duration_seconds",
+						"-1",
+					),
+					resource.TestCheckResourceAttrSet(
+						"influxdb-v2_bucket.acctest_no_shard",
+						"created_at",
+					),
+					resource.TestCheckResourceAttrSet(
+						"influxdb-v2_bucket.acctest_no_shard",
+						"updated_at",
+					),
+					testAccCheckUpdate("influxdb-v2_bucket.acctest_no_shard"),
+					resource.TestCheckResourceAttrSet(
+						"influxdb-v2_bucket.acctest_no_shard",
+						"type",
+					),
+				),
+			},
 		},
 	})
 }
@@ -171,6 +219,20 @@ resource "influxdb-v2_bucket" "acctest" {
     org_id = "` + os.Getenv("INFLUXDB_V2_ORG_ID") + `"
     retention_rules {
         every_seconds = "3630"
+    }
+}
+`
+}
+
+func testAccNoShardGroupDurationManagementBucket() string {
+	return `
+resource "influxdb-v2_bucket" "acctest_no_shard" {
+    description = "Acceptance test bucket" 
+    name = "acctest" 
+    org_id = "` + os.Getenv("INFLUXDB_V2_ORG_ID") + `"
+    retention_rules {
+        every_seconds = "3640"
+		shard_group_duration_seconds = "-1"
     }
 }
 `
